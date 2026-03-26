@@ -1,7 +1,24 @@
 name: apk
 
-on: workflow_dispatch:
+on:
+  workflow_dispatch:
 
-jobs: build: runs-on: ubuntu-latest
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-steps: - uses: actions/checkout@v3 - run: sudo apt update - run: sudo apt install -y python3-pip openjdk-17-jdk zip unzip - run: pip install buildozer cython - run: buildozer android debug - uses: actions/upload-artifact@v4 with: name: apk path: bin/*.apk 
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: sudo apt update
+
+      - run: sudo apt install -y python3-pip openjdk-17-jdk zip unzip
+
+      - run: pip install buildozer cython
+
+      - run: buildozer android debug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: bin/*.apk
