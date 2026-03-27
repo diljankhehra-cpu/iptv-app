@@ -1,9 +1,6 @@
 name: Build APK
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -11,31 +8,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      # 2️⃣ Setup Python 3.11
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev wget
+      # 3️⃣ Create venv for Buildozer
+      - name: Create Buildozer venv
+        shell: bash
+        run: |
+          python -m venv buildozer-venv
+          source buildozer-venv/bin/activate
+          pip install --upgrade pip setuptools wheel
 
-    - name: Create virtual environment and install Buildozer
-      shell: bash
-      run: |
-        python -m venv buildozer-venv
-        source buildozer-venv/bin/activate
-        pip install --upgrade pip setuptools wheel
-        pip install cython==0.29.36 buildozer python-for-android
+      # 4️⃣ Install Buildozer + Cython
+      - name: Install Buildozer & Cython
+        shell: bash
+        run: |
+          source buildozer-venv/bin/activate
+          pip install cython==0.29.36 buildozer==1.5.0 python-for-android
 
-    - name: Build APK
-      shell: bash
-      run: |
-        source buildozer-venv/bin/activate
-        python -m buildozer android debug
-      working-directory: ./  # jithe buildozer.spec hai
-    
+      # 5️⃣ Install Android SDK + Build Tools
+      - name: Install Android SDK + Build Tools
+        shell: bash
+        run: |
+          SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $SDK_ROOT/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
+          rm cmdline-tools.zip
+          mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
+
+          # Non-interactive license acceptance
+          yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT --licenses
+
+          # Install required packages
+          $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.2" \
+            "ndk;25.2.9519653" \
+            "cmake;3.22.1"
+
+      # 6️⃣ Build APK
+      - name: Build APK
+        shell: bash
+        run: |
+          source buildozer-venv/bin/activate
+          python -m buildozer android debug
+        working-directory: ./  # jithe buildozer.spec file hai
