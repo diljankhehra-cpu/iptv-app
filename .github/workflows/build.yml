@@ -1,4 +1,4 @@
-name: Build APK (Final AIDL Fix)
+name: Build APK (Full Fixed)
 
 on:
   push:
@@ -13,23 +13,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ Install dependencies
+      # 1️⃣ Install system dependencies
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y \
-            python3-pip git zip unzip openjdk-17-jdk \
-            build-essential libssl-dev libffi-dev \
-            zlib1g-dev libncurses-dev libstdc++6 \
-            libsqlite3-dev
+          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk \
+            build-essential libssl-dev libffi-dev zlib1g-dev \
+            libncurses-dev libstdc++6 libsqlite3-dev
 
-      # ✅ Install Buildozer
+      # 2️⃣ Install Buildozer & Cython
       - name: Install Buildozer
         run: |
           pip3 install --upgrade pip setuptools wheel
           pip3 install cython==0.29.33 buildozer
 
-      # ✅ Setup Android SDK
+      # 3️⃣ Setup Android SDK
       - name: Setup Android SDK
         run: |
           mkdir -p $HOME/android-sdk/cmdline-tools
@@ -43,7 +41,7 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      # ✅ Install SDK + FIX
+      # 4️⃣ Install SDK Packages + Build-tools + NDK
       - name: Install SDK Packages
         run: |
           export ANDROID_SDK_ROOT=$HOME/android-sdk
@@ -57,26 +55,23 @@ jobs:
             "build-tools;33.0.2" \
             "ndk;25.2.9519653"
 
-          # 🔥 Ensure correct build-tools
+          # Ensure correct build-tools folder
           mkdir -p $HOME/android-sdk/build-tools
           ln -sf $HOME/android-sdk/build-tools/33.0.2 $HOME/android-sdk/build-tools/latest
 
-          ls $HOME/android-sdk/build-tools
-
-      # ✅ 🔥 LINK SDK TO BUILDOZER (MAIN FIX)
+      # 5️⃣ Link Android SDK to Buildozer folder (CRITICAL FIX)
       - name: Link SDK to Buildozer
         run: |
           mkdir -p $HOME/.buildozer/android/platform
           ln -sf $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
+          ls -l $HOME/.buildozer/android/platform/
 
-          ls $HOME/.buildozer/android/platform/
-
-      # ✅ Fix AIDL path
+      # 6️⃣ Fix AIDL path
       - name: Fix AIDL
         run: |
           echo "$HOME/android-sdk/build-tools/33.0.2" >> $GITHUB_PATH
 
-      # ✅ Build APK (FINAL FIX)
+      # 7️⃣ Build APK
       - name: Build APK
         run: |
           export BUILDOZER_ALLOW_ROOT=1
@@ -85,7 +80,7 @@ jobs:
 
           buildozer android debug
 
-      # ✅ Upload APK
+      # 8️⃣ Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
