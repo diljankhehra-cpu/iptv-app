@@ -1,0 +1,1 @@
+{"playlist": "pkg update && pkg upgrade", "default": 0, "buffer": "low", "wm": {"enable": false, "path": null, "x": 10, "y": 10}, "epg": {"enable": true, "path": null}}
