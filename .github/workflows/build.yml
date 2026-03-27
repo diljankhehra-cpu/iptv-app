@@ -47,7 +47,7 @@ jobs:
         buildozer-venv/bin/python -m buildozer android debug
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: MyApp-debug-apk
         path: ./bin/*.apk
