@@ -60,3 +60,4 @@ jobs:
       working-directory: ./  # jithe buildozer.spec file hai
       run: |
         ./buildozer-venv/bin/python -m buildozer android debug
+
