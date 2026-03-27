@@ -8,15 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout repo
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    # 2️⃣ Setup Python
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
-    # 1️⃣ Setup Buildozer venv
+    # 3️⃣ Setup Buildozer venv
     - name: Setup Buildozer venv
       shell: bash
       run: |
@@ -25,33 +27,34 @@ jobs:
         pip install --upgrade pip setuptools wheel
         pip install cython==0.29.36 buildozer python-for-android
 
-    # 2️⃣ Install Android SDK & Build-tools (with pre-accepted licenses)
-    - name: Install Android SDK + Build Tools
+    # 4️⃣ Install missing AIDL (Build-Tools 33.0.2)
+    - name: Install Build-Tools (AIDL)
       shell: bash
       run: |
         SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
+        # If cmdline-tools already downloaded, skip wget/unzip
+        if [ ! -f "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
+          rm cmdline-tools.zip
+          mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
+        fi
 
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
-        rm cmdline-tools.zip
-        mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
-
-        # Accept licenses non-interactively
+        # Accept all licenses non-interactively
         yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT --licenses
 
-        # Install stable packages only (no build-tools 37)
+        # Install Build-Tools 33.0.2 (includes AIDL)
         $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "ndk;25.2.9519653" \
-            "cmake;3.22.1"
+            "build-tools;33.0.2"
 
-    # 3️⃣ Build APK
+        # Verify aidl
+        $SDK_ROOT/build-tools/33.0.2/aidl --help
+
+    # 5️⃣ Build APK
     - name: Build APK
       shell: bash
-      working-directory: ./  # jithe buildozer.spec hai
+      working-directory: ./   # jithe buildozer.spec hai
       run: |
         source buildozer-venv/bin/activate
         python -m buildozer android debug
