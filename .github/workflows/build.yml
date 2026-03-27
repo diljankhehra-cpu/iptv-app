@@ -19,12 +19,23 @@ jobs:
       with:
         python-version: "3.11"
 
+    - name: Install system dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev wget
+
+    - name: Create virtual environment and install Buildozer
+      shell: bash
+      run: |
+        python -m venv buildozer-venv
+        source buildozer-venv/bin/activate
+        pip install --upgrade pip setuptools wheel
+        pip install cython==0.29.36 buildozer python-for-android
+
     - name: Build APK
       shell: bash
       run: |
-        # Install Cython in venv (Buildozer requires it)
-        ./buildozer-venv/bin/pip install cython==0.29.36
-
-        # Run Buildozer using Python from venv
-        ./buildozer-venv/bin/python -m buildozer android debug
+        source buildozer-venv/bin/activate
+        python -m buildozer android debug
       working-directory: ./  # jithe buildozer.spec hai
+    
