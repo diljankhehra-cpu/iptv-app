@@ -11,13 +11,13 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # 1️⃣ Setup Python environment
+    # 1️⃣ Setup Python
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
-    # 2️⃣ Create virtual environment for Buildozer
+    # 2️⃣ Create virtual environment
     - name: Create Buildozer venv
       shell: bash
       run: |
@@ -37,16 +37,15 @@ jobs:
         SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
 
-        # Download command line tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
         unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
         rm cmdline-tools.zip
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
 
-        # Non-interactive license acceptance for all SDK packages
+        # Accept all licenses non-interactively
         yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT --licenses
 
-        # Install required SDK packages (lower build-tools to 33.0.2)
+        # Install required SDK packages
         $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT \
             "platform-tools" \
             "platforms;android-33" \
@@ -54,10 +53,9 @@ jobs:
             "ndk;25.2.9519653" \
             "cmake;3.22.1"
 
-    # 5️⃣ Build APK using Buildozer
+    # 5️⃣ Build APK
     - name: Build APK
       shell: bash
-      working-directory: ./  # jithe buildozer.spec file hai
+      working-directory: ./  # root directory where buildozer.spec is
       run: |
         ./buildozer-venv/bin/python -m buildozer android debug
-
