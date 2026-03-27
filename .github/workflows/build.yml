@@ -1,4 +1,4 @@
-name: Build APK (No AIDL Error)
+name: Build APK (Final AIDL Fix)
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      # ✅ Install SDK (FIXED)
+      # ✅ Install SDK + FIX
       - name: Install SDK Packages
         run: |
           export ANDROID_SDK_ROOT=$HOME/android-sdk
@@ -57,21 +57,32 @@ jobs:
             "build-tools;33.0.2" \
             "ndk;25.2.9519653"
 
-          # 🔥 force correct build-tools
+          # 🔥 Ensure correct build-tools
           mkdir -p $HOME/android-sdk/build-tools
-          ln -s $HOME/android-sdk/build-tools/33.0.2 $HOME/android-sdk/build-tools/latest
+          ln -sf $HOME/android-sdk/build-tools/33.0.2 $HOME/android-sdk/build-tools/latest
 
           ls $HOME/android-sdk/build-tools
 
-      # ✅ Fix AIDL
+      # ✅ 🔥 LINK SDK TO BUILDOZER (MAIN FIX)
+      - name: Link SDK to Buildozer
+        run: |
+          mkdir -p $HOME/.buildozer/android/platform
+          ln -sf $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
+
+          ls $HOME/.buildozer/android/platform/
+
+      # ✅ Fix AIDL path
       - name: Fix AIDL
         run: |
           echo "$HOME/android-sdk/build-tools/33.0.2" >> $GITHUB_PATH
 
-      # ✅ Build APK
+      # ✅ Build APK (FINAL FIX)
       - name: Build APK
         run: |
           export BUILDOZER_ALLOW_ROOT=1
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          export ANDROID_HOME=$HOME/android-sdk
+
           buildozer android debug
 
       # ✅ Upload APK
