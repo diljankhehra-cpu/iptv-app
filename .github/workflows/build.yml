@@ -1,4 +1,4 @@
-name: Build APK (Fixed Buildozer New Path)
+name: Build APK (Buildozer Full Fixed)
 
 on:
   push:
@@ -49,11 +49,15 @@ jobs:
           mkdir -p latest
           mv cmdline-tools/* latest/
 
+          # 🔹 Create symlink for old SDK path (Buildozer compatibility)
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+          ln -s $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/* $HOME/.buildozer/android/platform/android-sdk/tools/bin/
+
       # 5️⃣ Accept SDK licenses + install platform-tools & platforms
       - name: Accept SDK licenses
         run: |
-          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-          $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33"
+          yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses
+          $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "platform-tools" "platforms;android-33"
 
       # 6️⃣ Build APK
       - name: Build APK
