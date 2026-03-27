@@ -1,5 +1,9 @@
 name: Build APK
+
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -7,27 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip openjdk-17-jdk zip unzip \
-          zlib1g-dev libncurses5-dev libffi-dev libssl-dev libsqlite3-dev \
-          libjpeg-dev libfreetype6-dev liblzma-dev clang make git
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Install Python packages
-        run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip python3-setuptools python3-wheel \
+        build-essential git zip unzip openjdk-17-jdk
 
-      - name: Build APK
-        run: |
-          cd iptv-app
-          buildozer android debug --verbose
+        pip install --upgrade pip
+        pip install buildozer
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk
-          path: iptv-app/bin/*.apk
+    - name: Build APK
+      run: |
+        cd app  # ਜਿੱਥੇ ਤੁਹਾਡਾ main.py, buildozer.spec ਹੈ
+        buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: IPTVPlayer-apk
+        path: app/bin/*.apk
