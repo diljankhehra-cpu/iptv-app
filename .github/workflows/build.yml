@@ -22,18 +22,14 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y zip unzip tar wget curl git build-essential openjdk-17-jdk zlib1g-dev
+        sudo apt install -y zip unzip tar openjdk-17-jdk zlib1g-dev
 
-    - name: Create virtual environment
+    - name: Build APK
+      shell: bash
       run: |
         python -m venv buildozer-venv
         source buildozer-venv/bin/activate
         pip install --upgrade pip setuptools wheel
         pip install cython==0.29.36 buildozer python-for-android
-
-    - name: Build APK
-      shell: bash
-      run: |
-        source buildozer-venv/bin/activate
+        cd ./app
         buildozer android debug
-      working-directory: ./app
