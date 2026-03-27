@@ -1,59 +1,32 @@
 [app]
-# App title jo device te show hovega
-title = IPTVPlayer
 
-# Package name (unique identifier, Play Store style)
-package.name = diljaniptv
+# App info
+title = IPTV Player
+package.name = iptvplayer
+package.domain = org.test
 
-# Reverse domain style
-package.domain = diljan
-
-# Source code folder (current folder)
+# Source files
 source.dir = .
+source.include_exts = py,kv,png,jpg
 
-# Main Python file
-source.main = main.py
+version = 1.0
 
-# File extensions to include in the app
-source.include_exts = py,png,jpg,json,kv
+requirements = python3,kivy
 
-# Python libraries / dependencies
-requirements = python3,kivy,requests
-
-# App version
-version = 0.1
-
-# Screen orientation: portrait / landscape / all
 orientation = portrait
 
-# Fullscreen mode: 1 = yes, 0 = no
-fullscreen = 1
+# Android configuration (stable versions, no AIDL error)
+android.api = 33
+android.minapi = 21
+android.sdk = 33
+android.ndk = 25b
+android.build_tools_version = 33.0.2
 
-# Permissions needed by the app
-android.permissions = INTERNET,ACCESS_NETWORK_STATE
+# Auto accept licenses
+android.accept_sdk_license = True
 
-# Debug log level
+# Logging
 log_level = 2
 
-# Enable Kivy bootstrap (do not change)
-android.entrypoint = org.kivy.android.PythonActivity
-
-# Additional android-specific settings
-[android]
-# Minimum Android API version
-android.minapi = 21
-
-# Target Android API version
-android.api = 33
-
-# NDK version (for C/C++ dependencies, needed by some Kivy modules)
-android.ndk = 25b
-
-# App architecture: arm64 for modern phones
-android.arch = arm64-v8a
-
-# Whether to use android SDK build tools
-android.sdk = 31
-
-# Java VM heap size (optional)
-android.maxjavaheap = 512
+# Permissions
+android.permissions = INTERNET
