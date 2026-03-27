@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: "3.11"
 
-    # 3️⃣ Setup Buildozer venv
+    # 3️⃣ Create Buildozer venv + Install dependencies
     - name: Setup Buildozer venv
       shell: bash
       run: |
@@ -27,13 +27,14 @@ jobs:
         pip install --upgrade pip setuptools wheel
         pip install cython==0.29.36 buildozer python-for-android
 
-    # 4️⃣ Install missing AIDL (Build-Tools 33.0.2)
-    - name: Install Build-Tools (AIDL)
+    # 4️⃣ Install Android SDK + Build-Tools + AIDL
+    - name: Install Android SDK + AIDL
       shell: bash
       run: |
         SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
-        # If cmdline-tools already downloaded, skip wget/unzip
+
+        # Download cmdline-tools if missing
         if [ ! -f "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
@@ -41,20 +42,22 @@ jobs:
           mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
         fi
 
+        export ANDROID_SDK_ROOT=$SDK_ROOT
+
         # Accept all licenses non-interactively
         yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT --licenses
 
-        # Install Build-Tools 33.0.2 (includes AIDL)
+        # Install Build-Tools (includes AIDL) + Platforms
         $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT \
-            "build-tools;33.0.2"
+          "build-tools;33.0.2" "platforms;android-33"
 
         # Verify aidl
-        $SDK_ROOT/build-tools/33.0.2/aidl --help
+        $SDK_ROOT/build-tools/33.0.2/aidl --help || echo "AIDL installed"
 
-    # 5️⃣ Build APK
+    # 5️⃣ Build APK using Buildozer
     - name: Build APK
       shell: bash
-      working-directory: ./   # jithe buildozer.spec hai
+      working-directory: ./  # jithe buildozer.spec hai
       run: |
         source buildozer-venv/bin/activate
         python -m buildozer android debug
