@@ -1,52 +1,46 @@
 name: Build APK
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      # 1. Checkout repo
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python
+      # 2. Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'   # ya latest available
 
-      - name: Install system dependencies
+      # 3. Install system dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y \
-            python3-venv python3-dev python3-pip \
-            git openjdk-17-jdk ant zip unzip zlib1g-dev build-essential
+          sudo apt install -y openjdk-17-jdk unzip git python3-pip python3-venv zlib1g-dev
 
-      - name: Set environment variables for Java
-        run: |
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
-          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-
-      - name: Create Python virtual environment
+      # 4. Build APK
+      - name: Build APK
+        shell: bash
         run: |
           python3 -m venv buildozer-venv
           source buildozer-venv/bin/activate
           pip install --upgrade pip setuptools wheel
           pip install cython==0.29.36 buildozer python-for-android
-
-      - name: Activate venv and build APK
-        run: |
-          source buildozer-venv/bin/activate
           buildozer android debug
-        working-directory: ./app   # change this if your app files are in root
+        working-directory: ./app   # change to ./ if app files are root
 
-      - name: Upload APK artifact
+      # 5. Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: IPTV-App-APK
-          path: ./app/bin/*.apk
+          name: APK
+          path: ./app/bin/*.apk   # adjust path if different
