@@ -10,11 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_SDK_ROOT: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
-      ANDROID_NDK_HOME: ${{ github.workspace }}/.buildozer/android/platform/android-ndk
-      PATH: ${{ github.workspace }}/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$PATH
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -27,31 +22,18 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev wget curl git build-essential
+        sudo apt install -y zip unzip tar wget curl git build-essential openjdk-17-jdk zlib1g-dev
 
-    - name: Create virtual environment and install Buildozer
-      shell: bash
+    - name: Create virtual environment
       run: |
         python -m venv buildozer-venv
         source buildozer-venv/bin/activate
         pip install --upgrade pip setuptools wheel
         pip install cython==0.29.36 buildozer python-for-android
 
-    - name: Install Android SDK / NDK / Build-tools
-      shell: bash
-      run: |
-        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-        curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -q commandlinetools.zip -d $ANDROID_SDK_ROOT/cmdline-tools
-        mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-        curl -L -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
-        unzip -q android-ndk.zip -d $ANDROID_NDK_HOME
-
     - name: Build APK
       shell: bash
       run: |
         source buildozer-venv/bin/activate
-        cd ./app
         buildozer android debug
+      working-directory: ./app
