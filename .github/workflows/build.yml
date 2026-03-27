@@ -1,4 +1,4 @@
-name: Build APK (Stable No Errors)
+name: Build APK (No AIDL Error)
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04   # 🔥 stable version
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ Install system dependencies
+      # ✅ Install dependencies
       - name: Install Dependencies
         run: |
           sudo apt update
@@ -43,22 +43,28 @@ jobs:
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      # ✅ Install SDK + FIX AIDL
+      # ✅ Install SDK (FIXED)
       - name: Install SDK Packages
         run: |
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+
           yes | sdkmanager --licenses
 
-          sdkmanager --install \
+          sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.2" \
             "ndk;25.2.9519653"
 
-          # 🔥 verify install
+          # 🔥 force correct build-tools
+          mkdir -p $HOME/android-sdk/build-tools
+          ln -s $HOME/android-sdk/build-tools/33.0.2 $HOME/android-sdk/build-tools/latest
+
           ls $HOME/android-sdk/build-tools
 
-      # ✅ Fix AIDL path
-      - name: Fix AIDL Path
+      # ✅ Fix AIDL
+      - name: Fix AIDL
         run: |
           echo "$HOME/android-sdk/build-tools/33.0.2" >> $GITHUB_PATH
 
