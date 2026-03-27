@@ -12,7 +12,7 @@ runs-on: ubuntu-latest
 steps:
   - uses: actions/checkout@v4
 
-  - name: Install Python & deps
+  - name: Install deps
     run: |
       sudo apt update
       sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
@@ -20,12 +20,6 @@ steps:
   - name: Install Buildozer
     run: |
       pip3 install buildozer cython
-
-  - name: Init Buildozer (if not exists)
-    run: |
-      if [ ! -f buildozer.spec ]; then
-        buildozer init
-      fi
 
   - name: Build APK
     run: |
