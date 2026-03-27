@@ -1,4 +1,4 @@
-name: Build APK (Ubuntu)
+name: Build APK (Stable)
 
 on:
   push:
@@ -7,53 +7,60 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04   # 🔥 IMPORTANT (latest te issues aunde ne)
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      # ✅ System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y \
             python3-pip git zip unzip openjdk-17-jdk \
             build-essential libssl-dev libffi-dev \
-            zlib1g-dev libncurses5 libstdc++6 \
-            libffi-dev libsqlite3-dev
+            zlib1g-dev libncurses-dev libstdc++6 \
+            libsqlite3-dev
 
+      # ✅ Python + Buildozer
       - name: Install Buildozer
         run: |
-          pip3 install --upgrade pip
-          pip3 install buildozer cython
+          pip3 install --upgrade pip setuptools wheel
+          pip3 install cython==0.29.33 buildozer
 
-      - name: Install Android SDK
+      # ✅ Android SDK + NDK (AIDL FIX)
+      - name: Setup Android SDK
         run: |
           mkdir -p $HOME/android-sdk/cmdline-tools
           cd $HOME/android-sdk
 
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q commandlinetools-linux-9477386_latest.zip -d cmdline-tools
           mv cmdline-tools/cmdline-tools cmdline-tools/latest
 
           echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      - name: Accept Licenses & Install SDK Packages
+      # ✅ Install Required SDK Tools (AIDL FIX)
+      - name: Install SDK Packages
         run: |
           yes | sdkmanager --licenses
 
           sdkmanager \
             "platform-tools" \
             "platforms;android-33" \
-            "build-tools;33.0.2"
+            "build-tools;33.0.2" \
+            "ndk;25.2.9519653"
 
+      # ✅ Build APK
       - name: Build APK
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           buildozer android debug
 
+      # ✅ Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
