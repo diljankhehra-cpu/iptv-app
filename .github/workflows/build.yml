@@ -2,10 +2,15 @@ name: Build APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -13,27 +18,35 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.11
 
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip python3-venv python3-dev build-essential git zlib1g-dev
+          sudo apt install -y \
+            python3-venv python3-dev python3-pip \
+            git openjdk-17-jdk ant zip unzip zlib1g-dev build-essential
 
-      - name: Set up Buildozer virtual environment
+      - name: Set environment variables for Java
+        run: |
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Create Python virtual environment
         run: |
           python3 -m venv buildozer-venv
           source buildozer-venv/bin/activate
           pip install --upgrade pip setuptools wheel
-          pip install buildozer cython
+          pip install cython==0.29.36 buildozer python-for-android
 
-      - name: Build APK
+      - name: Activate venv and build APK
         run: |
           source buildozer-venv/bin/activate
           buildozer android debug
+        working-directory: ./app   # change this if your app files are in root
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: bin/*.apk
+          name: IPTV-App-APK
+          path: ./app/bin/*.apk
