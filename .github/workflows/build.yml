@@ -1,38 +1,62 @@
 name: Build APK (Ubuntu)
 
 on:
-  push:
-    branches:
-      - main
+push:
+branches:
+- main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+steps:
+  # 📥 Checkout Repo
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk build-essential libssl-dev libffi-dev zlib1g-dev
+  # 📦 Install Dependencies
+  - name: Install dependencies
+    run: |
+      sudo apt update
+      sudo apt install -y python3-pip git zip unzip openjdk-17-jdk build-essential libssl-dev libffi-dev zlib1g-dev
 
-      - name: Install Buildozer
-        run: |
-          pip3 install --upgrade pip
-          pip3 install buildozer cython
+  # 🐍 Install Buildozer
+  - name: Install Buildozer
+    run: |
+      pip3 install --upgrade pip
+      pip3 install buildozer cython
 
-      - name: Allow root
-        run: echo "export BUILDOZER_ALLOW_ROOT=1" >> ~/.bashrc
+  # 📱 Install Android SDK (FIXED)
+  - name: Install Android SDK
+    run: |
+      mkdir -p $HOME/android-sdk/cmdline-tools
+      cd $HOME/android-sdk
 
-      - name: Build APK
-        run: |
-          export BUILDOZER_ALLOW_ROOT=1
-          buildozer android debug
+      wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+      unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
+      mv cmdline-tools/cmdline-tools cmdline-tools/latest
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: IPTV-APK
-          path: bin/*.apk
+      export ANDROID_SDK_ROOT=$HOME/android-sdk
+      export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+
+      yes | sdkmanager --licenses || true
+
+      sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+        "platform-tools" \
+        "platforms;android-33" \
+        "build-tools;33.0.2"
+
+  # 🔧 Build APK
+  - name: Build APK
+    run: |
+      export BUILDOZER_ALLOW_ROOT=1
+      export ANDROID_SDK_ROOT=$HOME/android-sdk
+      export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+      buildozer android debug
+
+  # 📤 Upload APK
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: IPTV-APK
+      path: bin/*.apk
