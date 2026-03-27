@@ -13,24 +13,24 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Install dependencies
+      # Install system dependencies
       - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip git zip unzip openjdk-17-jdk wget
 
-      # Install Buildozer
-      - name: Install Buildozer
+      # Install Buildozer + Cython
+      - name: Install Buildozer & Cython
         run: |
-          pip3 install --upgrade buildozer
+          pip3 install --upgrade buildozer cython
 
-      # Setup Android SDK and NDK manually
+      # Setup Android SDK & NDK
       - name: Setup Android SDK & NDK
         run: |
           mkdir -p $HOME/.buildozer/android/platform
           cd $HOME/.buildozer/android/platform
 
-          # Install NDK (if not already)
+          # Install NDK
           if [ ! -d "android-ndk-r25b" ]; then
             wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
             unzip android-ndk.zip
@@ -46,7 +46,13 @@ jobs:
           mkdir -p tools/bin
           mv cmdline-tools/* tools/bin/
 
-      # Run Buildozer
+      # Accept SDK licenses + install platform-tools
+      - name: Accept SDK licenses
+        run: |
+          yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses
+          $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "platform-tools" "platforms;android-33"
+
+      # Build APK
       - name: Build APK
         run: |
           cd $GITHUB_WORKSPACE
