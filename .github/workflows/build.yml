@@ -1,4 +1,4 @@
-name: Build APK (Full Fixed)
+name: Build APK (Fixed Buildozer)
 
 on:
   push:
@@ -10,79 +10,44 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 1️⃣ Install system dependencies
-      - name: Install Dependencies
+      # Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk \
-            build-essential libssl-dev libffi-dev zlib1g-dev \
-            libncurses-dev libstdc++6 libsqlite3-dev
+          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk wget
 
-      # 2️⃣ Install Buildozer & Cython
+      # Install Buildozer
       - name: Install Buildozer
         run: |
-          pip3 install --upgrade pip setuptools wheel
-          pip3 install cython==0.29.33 buildozer
+          pip3 install --upgrade buildozer
 
-      # 3️⃣ Setup Android SDK
-      - name: Setup Android SDK
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk
-
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q commandlinetools-linux-9477386_latest.zip -d cmdline-tools
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
-
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
-
-      # 4️⃣ Install SDK Packages + Build-tools + NDK
-      - name: Install SDK Packages
-        run: |
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
-
-          yes | sdkmanager --licenses
-
-          sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "ndk;25.2.9519653"
-
-          # Ensure correct build-tools folder
-          mkdir -p $HOME/android-sdk/build-tools
-          ln -sf $HOME/android-sdk/build-tools/33.0.2 $HOME/android-sdk/build-tools/latest
-
-      # 5️⃣ Link Android SDK to Buildozer folder (CRITICAL FIX)
-      - name: Link SDK to Buildozer
+      # Setup Android SDK and NDK manually
+      - name: Setup Android SDK & NDK
         run: |
           mkdir -p $HOME/.buildozer/android/platform
-          ln -sf $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
-          ls -l $HOME/.buildozer/android/platform/
+          cd $HOME/.buildozer/android/platform
 
-      # 6️⃣ Fix AIDL path
-      - name: Fix AIDL
-        run: |
-          echo "$HOME/android-sdk/build-tools/33.0.2" >> $GITHUB_PATH
+          # Install NDK (if not already)
+          if [ ! -d "android-ndk-r25b" ]; then
+            wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
+            unzip android-ndk.zip
+            rm android-ndk.zip
+          fi
 
-      # 7️⃣ Build APK
+          # Install SDK command-line tools
+          mkdir -p android-sdk
+          cd android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          rm cmdline-tools.zip
+          mkdir -p tools/bin
+          mv cmdline-tools/* tools/bin/
+
+      # Run Buildozer
       - name: Build APK
         run: |
-          export BUILDOZER_ALLOW_ROOT=1
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
-          export ANDROID_HOME=$HOME/android-sdk
-
+          cd $GITHUB_WORKSPACE
           buildozer android debug
-
-      # 8️⃣ Upload APK
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: IPTV-APK
-          path: bin/*.apk
