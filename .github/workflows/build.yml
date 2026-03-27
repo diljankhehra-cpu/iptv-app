@@ -22,18 +22,26 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev
+        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev wget curl git
 
-    - name: Create virtual environment
-      run: |
-        python -m venv buildozer-venv
-        source buildozer-venv/bin/activate
-        pip install --upgrade pip setuptools wheel
-        pip install cython==0.29.36 buildozer python-for-android
-
-    - name: Build APK
+    - name: Build APK with Buildozer
       shell: bash
       run: |
-        source buildozer-venv/bin/activate
-        buildozer android debug
-      working-directory: ./app
+        # Go to app folder
+        cd ./app
+
+        # Create and use virtual environment
+        python -m venv buildozer-venv
+
+        # Install Python packages inside venv
+        ./buildozer-venv/bin/pip install --upgrade pip setuptools wheel
+        ./buildozer-venv/bin/pip install cython==0.29.36 buildozer python-for-android
+
+        # Build the APK
+        ./buildozer-venv/bin/buildozer android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-apk
+        path: ./app/bin/*.apk
