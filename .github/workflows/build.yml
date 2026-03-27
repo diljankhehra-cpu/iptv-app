@@ -1,63 +1,53 @@
-name: Build APK
+name: Build APK (Kivy Buildozer)
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+push:
+branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
+build:
+runs-on: ubuntu-latest
 
-    - name: Checkout repo
-      uses: actions/checkout@v4
+steps:
+- name: Checkout code
+  uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+- name: Install system dependencies
+  run: |
+    sudo apt update
+    sudo apt install -y \
+      python3-pip python3-setuptools python3-wheel \
+      git zip unzip openjdk-17-jdk \
+      build-essential libssl-dev libffi-dev \
+      libltdl-dev zlib1g-dev
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install buildozer python-for-android
+- name: Install Buildozer
+  run: |
+    pip3 install --upgrade pip
+    pip3 install buildozer cython
 
-    - name: Install Android SDK + Build-Tools + AIDL
-      run: |
-        SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
-        mkdir -p $SDK_ROOT/cmdline-tools
+- name: Install Android SDK + AIDL FIX
+  run: |
+    mkdir -p $HOME/android-sdk/cmdline-tools
+    cd $HOME/android-sdk
 
-        # Download cmdline-tools only if missing
-        if [ ! -f "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d $SDK_ROOT/cmdline-tools/
-          rm cmdline-tools.zip
-          mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
-        fi
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    unzip commandlinetools-linux-9477386_latest.zip -d cmdline-tools
+    mv cmdline-tools/cmdline-tools cmdline-tools/latest
 
-        export ANDROID_SDK_ROOT=$SDK_ROOT
-        export PATH=$SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    export ANDROID_SDK_ROOT=$HOME/android-sdk
+    export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 
-        # Accept licenses non-interactively
-        yes | sdkmanager --licenses || true
+    yes | sdkmanager --licenses || true
 
-        # Install build-tools & platform
-        sdkmanager "build-tools;33.0.2" "platforms;android-33"
+    sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-        # Verify aidl exists
-        if [ ! -f "$SDK_ROOT/build-tools/33.0.2/aidl" ]; then
-          echo "AIDL not found! Exiting..."
-          exit 1
-        fi
+- name: Build APK
+  run: |
+    buildozer android debug
 
-    - name: Build APK with Buildozer
-      run: |
-        buildozer android debug deploy run
-
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug.apk
-        path: bin/*.apk
+- name: Upload APK
+  uses: actions/upload-artifact@v4
+  with:
+    name: IPTV-APK
+    path: bin/*.apk
