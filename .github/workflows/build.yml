@@ -11,36 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      # 2. Setup Python
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'   # ya latest available
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      # 3. Install system dependencies
-      - name: Install Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk unzip git python3-pip python3-venv zlib1g-dev
+    - name: Install system dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev
 
-      # 4. Build APK
-      - name: Build APK
-        shell: bash
-        run: |
-          python3 -m venv buildozer-venv
-          source buildozer-venv/bin/activate
-          pip install --upgrade pip setuptools wheel
-          pip install cython==0.29.36 buildozer python-for-android
-          buildozer android debug
-        working-directory: ./app   # change to ./ if app files are root
+    - name: Create virtual environment
+      run: |
+        python -m venv buildozer-venv
+        source buildozer-venv/bin/activate
+        pip install --upgrade pip setuptools wheel
+        pip install cython==0.29.36 buildozer python-for-android
 
-      # 5. Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: APK
-          path: ./app/bin/*.apk   # adjust path if different
+    - name: Build APK
+      shell: bash
+      run: |
+        source buildozer-venv/bin/activate
+        buildozer android debug
+      working-directory: ./app
