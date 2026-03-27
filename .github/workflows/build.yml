@@ -1,44 +1,38 @@
 name: Build APK (Ubuntu)
 
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-steps:
-  # 📥 Repo
-  - name: Checkout
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  # 🐍 Python + system deps
-  - name: Install dependencies
-    run: |
-      sudo apt update
-      sudo apt install -y python3-pip git zip unzip openjdk-17-jdk build-essential libssl-dev libffi-dev zlib1g-dev
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk build-essential libssl-dev libffi-dev zlib1g-dev
 
-  # ⚙️ Buildozer
-  - name: Install Buildozer
-    run: |
-      pip3 install --upgrade pip
-      pip3 install buildozer cython
+      - name: Install Buildozer
+        run: |
+          pip3 install --upgrade pip
+          pip3 install buildozer cython
 
-  # 📱 Allow root (GitHub runner fix)
-  - name: Allow root
-    run: echo "export BUILDOZER_ALLOW_ROOT=1" >> ~/.bashrc
+      - name: Allow root
+        run: echo "export BUILDOZER_ALLOW_ROOT=1" >> ~/.bashrc
 
-  # 🔨 Build APK
-  - name: Build APK
-    run: |
-      export BUILDOZER_ALLOW_ROOT=1
-      buildozer android debug
+      - name: Build APK
+        run: |
+          export BUILDOZER_ALLOW_ROOT=1
+          buildozer android debug
 
-  # 📤 Upload APK
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: IPTV-APK
-      path: bin/*.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPTV-APK
+          path: bin/*.apk
