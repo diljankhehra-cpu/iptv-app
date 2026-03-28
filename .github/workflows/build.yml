@@ -54,14 +54,16 @@ jobs:
         unzip android-ndk-r25b-linux.zip
         echo "ANDROID_NDK_HOME=$HOME/android-ndk/android-ndk-r25b" >> $GITHUB_ENV
 
-    # 🧹 Clean previous build
-    - name: Clean previous build
+    # 🧹 Clean previous build & cache
+    - name: Clean previous build & cache
       run: |
+        echo "Removing old build and cache folders..."
         rm -rf ./.p4a_build
         rm -rf ./.build
         rm -rf ~/.local/share/python-for-android/dists/iptvbuild
+        echo "Clean complete!"
 
-    # 🚀 Build APK (with new main.py + iptv.kv)
+    # 🚀 Build APK (latest KV + Python)
     - name: Build APK
       run: |
         p4a apk \
