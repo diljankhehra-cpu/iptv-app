@@ -11,7 +11,7 @@
     # ---------------- VIDEO ----------------
     Video:
         id: player
-        source: ""
+        source: ""             # empty initially, will be set after user input
         state: "stop"
         allow_stretch: True
         keep_ratio: False
@@ -23,6 +23,14 @@
         size_hint: None, None
         size: 120, 60
         pos: 10, 10
+
+    # ---------------- LOADING / WELCOME LABEL ----------------
+    Label:
+        id: loading_label
+        text: "Enter IPTV URL to start..."
+        font_size: 24
+        color: 1,1,1,1
+        pos_hint: {"center_x":0.5, "center_y":0.5}
 
     # ---------------- TOP BAR ----------------
     BoxLayout:
