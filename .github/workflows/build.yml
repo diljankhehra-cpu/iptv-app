@@ -1,74 +1,73 @@
-name: Build APK (R25b NDK)
+name: Build APK (Ultra Stable)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    # 📥 CODE
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      # 2️⃣ Install system dependencies
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk wget build-essential
+    # 🐍 PYTHON
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-      # 3️⃣ Install Buildozer, python-for-android & Cython
-      - name: Install Buildozer & dependencies
-        run: |
-          pip3 install --upgrade "buildozer==1.5.0" "python-for-android==2024.1.21" cython
+    # ☕ JAVA
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
 
-      # 4️⃣ Setup Android SDK & NDK (R25b)
-      - name: Setup Android SDK & NDK
-        run: |
-          mkdir -p $HOME/.buildozer/android/platform
-          cd $HOME/.buildozer/android/platform
+    # 📦 DEPENDENCIES
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          git zip unzip autoconf libtool pkg-config \
+          zlib1g-dev libncurses5-dev libncursesw5-dev \
+          cmake libffi-dev libssl-dev \
+          libltdl-dev libsqlite3-dev sqlite3 \
+          ffmpeg libsdl2-dev libsdl2-image-dev \
+          libsdl2-mixer-dev libsdl2-ttf-dev \
+          libgstreamer1.0-dev gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good
 
-          # Install NDK R25b
-          if [ ! -d "android-ndk-r25b" ]; then
-            wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
-            unzip android-ndk.zip
-            rm android-ndk.zip
-          fi
+        python -m pip install --upgrade pip
+        pip install cython==0.29.36 buildozer
 
-          # Install SDK command-line tools
-          mkdir -p android-sdk/cmdline-tools
-          cd android-sdk/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip
-          rm cmdline-tools.zip
+    # 🔧 CLEAN BUILD (VERY IMPORTANT)
+    - name: Clean old builds
+      run: |
+        rm -rf .buildozer
+        rm -rf ~/.buildozer
+        rm -rf bin
 
-          # Move to 'latest' folder (Buildozer requirement)
-          mkdir -p latest
-          mv cmdline-tools/* latest/
+    # ⚙️ FIX buildozer.spec (force correct config)
+    - name: Patch buildozer.spec
+      run: |
+        sed -i 's/^# *android.api *=.*/android.api = 33/' buildozer.spec || true
+        sed -i 's/^# *android.minapi *=.*/android.minapi = 21/' buildozer.spec || true
+        sed -i 's/^# *android.ndk *=.*/android.ndk = 25b/' buildozer.spec || true
+        sed -i 's/^# *android.sdk *=.*/android.sdk = 33/' buildozer.spec || true
+        sed -i 's/^# *requirements *=.*/requirements = python3,kivy,requests/' buildozer.spec || true
 
-          # Symlink for old path compatibility
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
-          ln -s $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/* \
-                $HOME/.buildozer/android/platform/android-sdk/tools/bin/
+    # 📱 BUILD APK
+    - name: Build APK
+      run: |
+        buildozer android debug
 
-      # 5️⃣ Accept SDK licenses & install platform-tools + platforms
-      - name: Accept SDK licenses
-        run: |
-          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-          $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33"
-
-      # 6️⃣ Build APK with verbose logging
-      - name: Build APK
-        run: |
-          cd $GITHUB_WORKSPACE
-          buildozer android debug --verbose
-
-      # 7️⃣ Upload APK as artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: APK
-          path: $GITHUB_WORKSPACE/bin/*.apk
+    # 📦 UPLOAD
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: IPTV-APK
+        path: bin/*.apk
