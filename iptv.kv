@@ -1,124 +1,37 @@
-<IPTV>:
-
-    # ---------------- BACKGROUND ----------------
-    canvas.before:
-        Color:
-            rgba: 0, 0, 0, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    # ---------------- VIDEO ----------------
+<FloatLayout>:
     Video:
         id: player
-        source: ""             # empty initially, will be set after user input
-        state: "stop"
-        allow_stretch: True
-        keep_ratio: False
-
-    # ---------------- WATERMARK ----------------
+        size_hint: 1, 0.7
+        pos_hint: {"x":0, "y":0.2}
+    Label:
+        id: ch_name
+        text: "Channel Name"
+        size_hint: 1, 0.05
+        pos_hint: {"x":0, "y":0.95}
+        halign: "center"
+    Label:
+        id: program
+        text: "Now Playing..."
+        size_hint: 1, 0.05
+        pos_hint: {"x":0, "y":0.9}
+        halign: "center"
     Image:
         id: wm
-        source: ""
         size_hint: None, None
         size: 120, 60
         pos: 10, 10
-
-    # ---------------- LOADING / WELCOME LABEL ----------------
-    Label:
-        id: loading_label
-        text: "Enter IPTV URL to start..."
-        font_size: 24
-        color: 1,1,1,1
-        pos_hint: {"center_x":0.5, "center_y":0.5}
-
-    # ---------------- TOP BAR ----------------
     BoxLayout:
         id: topbar
-        size_hint_y: None
-        height: "60dp"
-        pos_hint: {"top": 1}
-        padding: 20
-        spacing: 30
-        opacity: 0   # hidden by default
-
-        canvas.before:
-            Color:
-                rgba: 0, 0, 0, 0.5
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-        Label:
-            text: "🔍"
-            font_size: 28
-
-        Label:
-            text: "📺"
-            font_size: 28
-
-        Label:
-            text: "⚙"
-            font_size: 28
-
-        Label:
-            text: "⏻"
-            font_size: 28
-
-    # ---------------- CENTER MENU ----------------
+        size_hint: 1, 0.05
+        pos_hint: {"x":0, "y":0.85}
+        opacity: 0
     BoxLayout:
         id: menu
-        orientation: "horizontal"
-        size_hint: None, None
-        size: "500dp", "120dp"
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        spacing: 60
-        opacity: 0   # hidden
-
-        canvas.before:
-            Color:
-                rgba: 0, 0, 0, 0.6
-            RoundedRectangle:
-                pos: self.pos
-                size: self.size
-                radius: [20]
-
-        Label:
-            text: "🔍\nSearch"
-            halign: "center"
-
-        Label:
-            text: "📺\nLive"
-            halign: "center"
-
-        Label:
-            text: "⚙\nSettings"
-            halign: "center"
-
-    # ---------------- EPG BAR ----------------
+        size_hint: 1, 0.05
+        pos_hint: {"x":0, "y":0.8}
+        opacity: 0
     BoxLayout:
         id: epg
-        size_hint_y: None
-        height: "100dp"
-        pos_hint: {"y": 0}
-        padding: 10
-        spacing: 20
-        opacity: 0   # hidden
-
-        canvas.before:
-            Color:
-                rgba: 0, 0, 0, 0.7
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-        Label:
-            id: ch_name
-            text: "Channel"
-            size_hint_x: 0.4
-            font_size: 20
-
-        Label:
-            id: program
-            text: "Program Info"
-            font_size: 18
+        size_hint: 1, 0.05
+        pos_hint: {"x":0, "y":0.75}
+        opacity: 0
