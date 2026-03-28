@@ -1,4 +1,4 @@
-name: Build APK (Fixed Buildozer New Path + NDK r24b)
+name: Build APK (R25b NDK)
 
 on:
   push:
@@ -20,20 +20,20 @@ jobs:
           sudo apt update
           sudo apt install -y python3-pip git zip unzip openjdk-17-jdk wget build-essential
 
-      # 3️⃣ Install Buildozer + Cython
-      - name: Install Buildozer & Cython
+      # 3️⃣ Install Buildozer, python-for-android & Cython
+      - name: Install Buildozer & dependencies
         run: |
-          pip3 install --upgrade buildozer cython
+          pip3 install --upgrade "buildozer==1.5.1" "python-for-android==2026.3.0" cython
 
-      # 4️⃣ Setup Android SDK & NDK
+      # 4️⃣ Setup Android SDK & NDK (R25b)
       - name: Setup Android SDK & NDK
         run: |
           mkdir -p $HOME/.buildozer/android/platform
           cd $HOME/.buildozer/android/platform
 
-          # Install NDK r24b if not exists
-          if [ ! -d "android-ndk-r24b" ]; then
-            wget https://dl.google.com/android/repository/android-ndk-r24b-linux.zip -O android-ndk.zip
+          # Install NDK R25b
+          if [ ! -d "android-ndk-r25b" ]; then
+            wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
             unzip android-ndk.zip
             rm android-ndk.zip
           fi
@@ -45,11 +45,11 @@ jobs:
           unzip cmdline-tools.zip
           rm cmdline-tools.zip
 
-          # Move to 'latest' folder (Buildozer required)
+          # Move to 'latest' folder (Buildozer requirement)
           mkdir -p latest
           mv cmdline-tools/* latest/
 
-          # ⚡ Symlink for old path compatibility
+          # Symlink for old path compatibility
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
           ln -s $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/* \
                 $HOME/.buildozer/android/platform/android-sdk/tools/bin/
