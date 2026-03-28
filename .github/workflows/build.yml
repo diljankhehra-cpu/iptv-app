@@ -23,7 +23,7 @@ jobs:
       # 3️⃣ Install Buildozer, python-for-android & Cython
       - name: Install Buildozer & dependencies
         run: |
-          pip3 install --upgrade "buildozer==1.5.0" "python-for-android==2026.3.0" cython
+          pip3 install --upgrade "buildozer==1.5.0" "python-for-android==2024.1.21" cython
 
       # 4️⃣ Setup Android SDK & NDK (R25b)
       - name: Setup Android SDK & NDK
