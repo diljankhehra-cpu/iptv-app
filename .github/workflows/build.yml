@@ -1,4 +1,4 @@
-name: Build APK (No Error Final)
+name: Build APK (Ultimate Fix All Errors)
 
 on:
   push:
@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+
+    env:
+      ANDROID_NDK_VERSION: 25b
 
     steps:
     # 📥 CODE
@@ -27,7 +30,7 @@ jobs:
         distribution: "temurin"
         java-version: "17"
 
-    # 📦 INSTALL DEPENDENCIES (STABLE)
+    # 📦 INSTALL DEPENDENCIES
     - name: Install dependencies
       run: |
         sudo apt update
@@ -42,21 +45,29 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython==0.29.36 buildozer
 
-    # 🧹 CLEAN OLD BUILD
-    - name: Clean build cache
+    # 🧹 CLEAN
+    - name: Clean build
       run: |
         rm -rf .buildozer
         rm -rf ~/.buildozer
         rm -rf bin
 
-    # ⚙️ FIX buildozer.spec AUTO
+    # ⚙️ FIX buildozer.spec FULL
     - name: Fix buildozer.spec
       run: |
         sed -i 's/^# *android.api *=.*/android.api = 33/' buildozer.spec || true
         sed -i 's/^# *android.minapi *=.*/android.minapi = 21/' buildozer.spec || true
         sed -i 's/^# *android.ndk *=.*/android.ndk = 25b/' buildozer.spec || true
         sed -i 's/^# *android.sdk *=.*/android.sdk = 33/' buildozer.spec || true
+        sed -i 's/^# *android.ndk_api *=.*/android.ndk_api = 21/' buildozer.spec || true
+        sed -i 's/^# *android.build_tools *=.*/android.build_tools = 33.0.0/' buildozer.spec || true
         sed -i 's/^# *requirements *=.*/requirements = python3,kivy,requests/' buildozer.spec || true
+        echo "android.accept_sdk_license = True" >> buildozer.spec
+
+    # 🔑 ACCEPT LICENSE + INSTALL SDK
+    - name: Accept SDK licenses
+      run: |
+        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     # 📱 BUILD APK
     - name: Build APK
