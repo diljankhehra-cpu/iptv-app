@@ -4,6 +4,10 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
+from kivy.config import Config
+
+# Use ffpyplayer for better video stability
+Config.set('kivy', 'video', 'ffpyplayer')
 
 CONFIG_NAME = "config.json"
 
@@ -21,8 +25,8 @@ class IPTV(FloatLayout):
 
         Window.bind(on_key_down=self.keys)
 
-        # Load playlist async
-        self.load_playlist(self.data["playlists"][self.data["current_playlist"]])
+        # Delay playlist load slightly to ensure KV widgets ready
+        Clock.schedule_once(lambda dt: self.load_playlist(self.data["playlists"][self.data["current_playlist"]]), 0.2)
 
     # ---------------- CONFIG ----------------
     def load_config(self):
@@ -70,6 +74,7 @@ class IPTV(FloatLayout):
         print("Playlist error:", error)
 
     def parse_playlist(self, lines):
+        self.channels = []
         for i in range(len(lines)):
             if lines[i].startswith("#EXTINF"):
                 try:
@@ -79,42 +84,49 @@ class IPTV(FloatLayout):
                 except:
                     pass
         print("Channels loaded:", len(self.channels))
-        Clock.schedule_once(self.start_play, 0)
+        # Delay start_play to ensure Video widget ready
+        Clock.schedule_once(self.start_play, 0.5)
 
     # ---------------- START ----------------
     def start_play(self, dt):
-        if self.channels:
+        if self.channels and hasattr(self.ids, "player"):
             self.play(self.current)
 
     # ---------------- PLAY ----------------
     def play(self, i):
-        if not self.channels:
+        if not self.channels or not hasattr(self.ids, "player"):
             return
 
         self.current = i
         ch = self.channels[i]
 
-        print("▶", ch["name"])
-
+        print("▶", ch["name"], ch["url"])
         try:
+            self.ids.player.state = "stop"  # stop before load
             self.ids.player.source = ch["url"]
             self.ids.player.state = "play"
         except Exception as e:
             print("Video load error:", e)
 
         # EPG update
-        self.ids.ch_name.text = ch["name"]
-        self.ids.program.text = "Now Playing..."
+        if hasattr(self.ids, "ch_name") and hasattr(self.ids, "program"):
+            self.ids.ch_name.text = ch["name"]
+            self.ids.program.text = "Now Playing..."
 
         # WATERMARK
         wm = self.data["wm"]
         if wm["enable"] and wm["path"]:
-            self.ids.wm.source = wm["path"]
-            self.ids.wm.pos = (wm["x"], wm["y"])
-            self.ids.wm.size = (wm["w"], wm["h"])
+            try:
+                self.ids.wm.source = wm["path"]
+                self.ids.wm.pos = (wm["x"], wm["y"])
+                self.ids.wm.size = (wm["w"], wm["h"])
+            except:
+                pass
 
     # ---------------- KEYS ----------------
     def keys(self, inst, key, scancode, text, mod):
+        if not self.channels:
+            return
 
         # CH+
         if key == 166:
@@ -140,17 +152,23 @@ class IPTV(FloatLayout):
 
     # ---------------- OVERLAY ----------------
     def show_overlay(self):
-        self.ids.topbar.opacity = 1
-        self.ids.menu.opacity = 1
-        self.ids.epg.opacity = 1
+        if hasattr(self.ids, "topbar"):
+            self.ids.topbar.opacity = 1
+        if hasattr(self.ids, "menu"):
+            self.ids.menu.opacity = 1
+        if hasattr(self.ids, "epg"):
+            self.ids.epg.opacity = 1
 
         Clock.unschedule(self.hide_overlay)
         Clock.schedule_once(self.hide_overlay, 6)
 
     def hide_overlay(self, dt):
-        self.ids.topbar.opacity = 0
-        self.ids.menu.opacity = 0
-        self.ids.epg.opacity = 0
+        if hasattr(self.ids, "topbar"):
+            self.ids.topbar.opacity = 0
+        if hasattr(self.ids, "menu"):
+            self.ids.menu.opacity = 0
+        if hasattr(self.ids, "epg"):
+            self.ids.epg.opacity = 0
 
     # ---------------- SETTINGS ----------------
     def settings_menu(self):
