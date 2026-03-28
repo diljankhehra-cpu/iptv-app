@@ -1,4 +1,4 @@
-name: Build APK (Final Working No Error)
+name: Build APK (p4a Direct)
 
 on:
   push:
@@ -10,54 +10,52 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # 📥 CODE
     - name: Checkout
       uses: actions/checkout@v4
 
-    # 🐍 PYTHON
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    # ☕ JAVA
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: "temurin"
         java-version: "17"
 
-    # 📦 DEPENDENCIES
     - name: Install dependencies
       run: |
         sudo apt update
         sudo apt install -y \
-          git zip unzip autoconf libtool pkg-config \
-          zlib1g-dev libncurses5-dev libncursesw5-dev \
+          git zip unzip openjdk-17-jdk \
+          autoconf libtool pkg-config \
+          zlib1g-dev libncurses5-dev \
           cmake libffi-dev libssl-dev \
-          libltdl-dev libsqlite3-dev sqlite3 \
-          ffmpeg libsdl2-dev libsdl2-image-dev \
+          libsqlite3-dev sqlite3 \
+          libsdl2-dev libsdl2-image-dev \
           libsdl2-mixer-dev libsdl2-ttf-dev \
           libunwind-dev
 
         python -m pip install --upgrade pip
-        pip install cython==0.29.36 buildozer
+        pip install cython==0.29.36
+        pip install python-for-android
 
-    # 🧹 CLEAN BUILD
-    - name: Clean build
-      run: |
-        rm -rf .buildozer
-        rm -rf ~/.buildozer
-        rm -rf bin
-
-    # 📱 BUILD APK (NO DUPLICATE FIX NEEDED)
     - name: Build APK
       run: |
-        buildozer android debug
+        p4a apk \
+        --private . \
+        --package=org.test.iptv \
+        --name "IPTV Player" \
+        --version 1.0 \
+        --bootstrap=sdl2 \
+        --requirements=python3,kivy==2.2.0,requests \
+        --android-api=33 \
+        --ndk-version=25b \
+        --dist_name=iptvbuild
 
-    # 📦 UPLOAD APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: IPTV-APK
-        path: bin/*.apk
+        path: dist/**/bin/*.apk
