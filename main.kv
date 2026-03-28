@@ -3,7 +3,7 @@
     # ---------------- BACKGROUND ----------------
     canvas.before:
         Color:
-            rgba: 0,0,0,1
+            rgba: 0, 0, 0, 1
         Rectangle:
             pos: self.pos
             size: self.size
@@ -29,14 +29,14 @@
         id: topbar
         size_hint_y: None
         height: "60dp"
-        pos_hint: {"top":1}
+        pos_hint: {"top": 1}
         padding: 20
         spacing: 30
-        opacity: 0   # 🔥 hidden by default
+        opacity: 0   # hidden by default
 
         canvas.before:
             Color:
-                rgba: 0,0,0,0.5
+                rgba: 0, 0, 0, 0.5
             Rectangle:
                 pos: self.pos
                 size: self.size
@@ -62,14 +62,14 @@
         id: menu
         orientation: "horizontal"
         size_hint: None, None
-        size: "500dp","120dp"
-        pos_hint: {"center_x":0.5, "center_y":0.5}
+        size: "500dp", "120dp"
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
         spacing: 60
-        opacity: 0   # 🔥 hidden
+        opacity: 0   # hidden
 
         canvas.before:
             Color:
-                rgba: 0,0,0,0.6
+                rgba: 0, 0, 0, 0.6
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
@@ -92,14 +92,14 @@
         id: epg
         size_hint_y: None
         height: "100dp"
-        pos_hint: {"y":0}
+        pos_hint: {"y": 0}
         padding: 10
         spacing: 20
-        opacity: 0   # 🔥 hidden
+        opacity: 0   # hidden
 
         canvas.before:
             Color:
-                rgba: 0,0,0,0.7
+                rgba: 0, 0, 0, 0.7
             Rectangle:
                 pos: self.pos
                 size: self.size
