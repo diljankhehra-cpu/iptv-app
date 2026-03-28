@@ -5,9 +5,13 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
 from kivy.config import Config
+from kivy.lang import Builder
 
-# Use ffpyplayer for better video stability
+# ---------------- VIDEO CONFIG ----------------
 Config.set('kivy', 'video', 'ffpyplayer')
+
+# ---------------- FORCE LOAD KV ----------------
+Builder.load_file("iptv.kv")  # ensure your main.kv is renamed to iptv.kv
 
 CONFIG_NAME = "config.json"
 
