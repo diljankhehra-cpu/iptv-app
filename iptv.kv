@@ -1,37 +1,64 @@
-<FloatLayout>:
+<IPTV>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     Video:
         id: player
-        size_hint: 1, 0.7
-        pos_hint: {"x":0, "y":0.2}
-    Label:
-        id: ch_name
-        text: "Channel Name"
-        size_hint: 1, 0.05
-        pos_hint: {"x":0, "y":0.95}
-        halign: "center"
-    Label:
-        id: program
-        text: "Now Playing..."
-        size_hint: 1, 0.05
-        pos_hint: {"x":0, "y":0.9}
-        halign: "center"
-    Image:
-        id: wm
-        size_hint: None, None
-        size: 120, 60
-        pos: 10, 10
+        size_hint: 1, 1
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        allow_stretch: True
+
     BoxLayout:
         id: topbar
-        size_hint: 1, 0.05
-        pos_hint: {"x":0, "y":0.85}
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: "80dp"
+        pos_hint: {"top": 1}
         opacity: 0
+        canvas.before:
+            Color:
+                rgba: 0, 0, 0, 0.7
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Label:
+            id: ch_name
+            text: ""
+            font_size: '24sp'
+            bold: True
+
     BoxLayout:
-        id: menu
-        size_hint: 1, 0.05
-        pos_hint: {"x":0, "y":0.8}
+        id: side_menu
+        orientation: 'vertical'
+        size_hint: 0.35, 1
+        pos_hint: {"x": 0, "y": 0}
         opacity: 0
-    BoxLayout:
-        id: epg
-        size_hint: 1, 0.05
-        pos_hint: {"x":0, "y":0.75}
-        opacity: 0
+        disabled: True
+        canvas.before:
+            Color:
+                rgba: 0.05, 0.05, 0.05, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        TextInput:
+            id: search_input
+            hint_text: "Search Channel..."
+            size_hint_y: None
+            height: "45dp"
+            multiline: False
+            background_color: (0.2, 0.2, 0.2, 1)
+            foreground_color: (1, 1, 1, 1)
+            on_text: root.filter_menu(self.text)
+
+        ScrollView:
+            GridLayout:
+                id: menu_list
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 2
