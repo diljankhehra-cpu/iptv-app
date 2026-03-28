@@ -1,4 +1,4 @@
-name: Build APK (p4a Final Stable)
+name: Build APK (p4a Final Clean)
 
 on:
   push:
@@ -10,24 +10,24 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # 📥 Checkout Code
+    # 📥 Checkout code
     - name: Checkout
       uses: actions/checkout@v4
 
-    # 🐍 Python Setup
+    # 🐍 Python setup
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    # ☕ Java Setup (Android build)
+    # ☕ Java setup
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: "temurin"
         java-version: "17"
 
-    # 📦 Install Dependencies
+    # 📦 Install dependencies
     - name: Install dependencies
       run: |
         sudo apt update
@@ -43,9 +43,9 @@ jobs:
 
         python -m pip install --upgrade pip
         pip install cython==0.29.36
-        pip install 0
+        pip install python-for-android
 
-    # 🚀 Build APK (FIXED)
+    # 🚀 Build APK (FINAL FIXED)
     - name: Build APK
       run: |
         p4a apk \
