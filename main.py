@@ -1,32 +1,36 @@
-import json, os, requests
+import json, os
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.network.urlrequest import UrlRequest
 
-CONFIG = "config.json"
+CONFIG_NAME = "config.json"
 
 class IPTV(FloatLayout):
 
     def __init__(self, **kw):
         super().__init__(**kw)
 
-        self.data = self.load()
+        # Config file in app user directory
+        self.config_path = os.path.join(App.get_running_app().user_data_dir, CONFIG_NAME)
+        self.data = self.load_config()
+
         self.channels = []
         self.current = self.data["default"]
 
         Window.bind(on_key_down=self.keys)
 
-        # playlist load
+        # Load playlist async
         self.load_playlist(self.data["playlists"][self.data["current_playlist"]])
 
-        # direct play on start
-        Clock.schedule_once(self.start_play, 1)
-
     # ---------------- CONFIG ----------------
-    def load(self):
-        if os.path.exists(CONFIG):
-            return json.load(open(CONFIG))
+    def load_config(self):
+        if os.path.exists(self.config_path):
+            try:
+                return json.load(open(self.config_path))
+            except:
+                pass
         return {
             "playlists": ["https://iptv-org.github.io/iptv/index.m3u"],
             "current_playlist": 0,
@@ -34,27 +38,38 @@ class IPTV(FloatLayout):
             "wm": {"enable": False, "path": "", "x": 10, "y": 10, "w":120, "h":60}
         }
 
-    def save(self):
-        json.dump(self.data, open(CONFIG,"w"))
-
-    # ---------------- START ----------------
-    def start_play(self, dt):
-        if self.channels:
-            self.play(self.current)
+    def save_config(self):
+        try:
+            json.dump(self.data, open(self.config_path, "w"))
+        except Exception as e:
+            print("Error saving config:", e)
 
     # ---------------- PLAYLIST ----------------
     def load_playlist(self, path):
         self.channels = []
-        try:
-            if path.startswith("http"):
-                res = requests.get(path, timeout=10)
-                lines = res.text.splitlines()
-            else:
-                lines = open(path).readlines()
-        except:
-            print("Playlist error")
-            return
 
+        if path.startswith("http"):
+            UrlRequest(
+                url=path,
+                on_success=self.on_playlist_success,
+                on_error=self.on_playlist_error,
+                on_failure=self.on_playlist_error
+            )
+        else:
+            try:
+                lines = open(path).readlines()
+                self.parse_playlist(lines)
+            except Exception as e:
+                print("Playlist error:", e)
+
+    def on_playlist_success(self, request, result):
+        lines = result.splitlines()
+        self.parse_playlist(lines)
+
+    def on_playlist_error(self, request, error):
+        print("Playlist error:", error)
+
+    def parse_playlist(self, lines):
         for i in range(len(lines)):
             if lines[i].startswith("#EXTINF"):
                 try:
@@ -63,8 +78,13 @@ class IPTV(FloatLayout):
                     self.channels.append({"name": name, "url": url})
                 except:
                     pass
+        print("Channels loaded:", len(self.channels))
+        Clock.schedule_once(self.start_play, 0)
 
-        print("Channels:", len(self.channels))
+    # ---------------- START ----------------
+    def start_play(self, dt):
+        if self.channels:
+            self.play(self.current)
 
     # ---------------- PLAY ----------------
     def play(self, i):
@@ -76,8 +96,11 @@ class IPTV(FloatLayout):
 
         print("▶", ch["name"])
 
-        self.ids.player.source = ch["url"]
-        self.ids.player.state = "play"
+        try:
+            self.ids.player.source = ch["url"]
+            self.ids.player.state = "play"
+        except Exception as e:
+            print("Video load error:", e)
 
         # EPG update
         self.ids.ch_name.text = ch["name"]
@@ -117,7 +140,6 @@ class IPTV(FloatLayout):
 
     # ---------------- OVERLAY ----------------
     def show_overlay(self):
-
         self.ids.topbar.opacity = 1
         self.ids.menu.opacity = 1
         self.ids.epg.opacity = 1
@@ -140,4 +162,5 @@ class AppMain(App):
         Window.fullscreen = True
         return IPTV()
 
-AppMain().run()
+if __name__ == "__main__":
+    AppMain().run()
