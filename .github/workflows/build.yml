@@ -54,7 +54,14 @@ jobs:
         unzip android-ndk-r25b-linux.zip
         echo "ANDROID_NDK_HOME=$HOME/android-ndk/android-ndk-r25b" >> $GITHUB_ENV
 
-    # 🚀 Build APK
+    # 🧹 Clean previous build
+    - name: Clean previous build
+      run: |
+        rm -rf ./.p4a_build
+        rm -rf ./.build
+        rm -rf ~/.local/share/python-for-android/dists/iptvbuild
+
+    # 🚀 Build APK (with new main.py + iptv.kv)
     - name: Build APK
       run: |
         p4a apk \
@@ -63,15 +70,16 @@ jobs:
         --name "IPTV Player" \
         --version 1.0 \
         --bootstrap=sdl2 \
-        --requirements=python3,kivy==2.2.0,requests,urllib3,certifi,idna,charset_normalizer \
+        --requirements=python3,kivy==2.2.0,ffpyplayer,requests,urllib3,certifi,idna,charset_normalizer \
         --android-api=34 \
         --arch=arm64-v8a \
         --ndk-dir=$ANDROID_NDK_HOME \
-        --dist_name=iptvbuild
+        --dist_name=iptvbuild \
+        --ignore-setup-py  # ensures KV + main.py used from repo
 
-    # 📦 Upload APK (PATH FIXED)
+    # 📦 Upload APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: IPTV-APK
-        path: /home/runner/.local/share/python-for-android/dists/iptvbuild/build/outputs/apk/debug/*.apk
+        path: ~/.local/share/python-for-android/dists/iptvbuild/build/outputs/apk/debug/*.apk
