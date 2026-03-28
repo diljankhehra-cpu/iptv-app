@@ -1,4 +1,4 @@
-name: Build APK (Fixed Buildozer New Path)
+name: Build APK (Fixed Buildozer New Path + NDK r24b)
 
 on:
   push:
@@ -31,9 +31,9 @@ jobs:
           mkdir -p $HOME/.buildozer/android/platform
           cd $HOME/.buildozer/android/platform
 
-          # Install NDK if not exists
-          if [ ! -d "android-ndk-r25b" ]; then
-            wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
+          # Install NDK r24b if not exists
+          if [ ! -d "android-ndk-r24b" ]; then
+            wget https://dl.google.com/android/repository/android-ndk-r24b-linux.zip -O android-ndk.zip
             unzip android-ndk.zip
             rm android-ndk.zip
           fi
