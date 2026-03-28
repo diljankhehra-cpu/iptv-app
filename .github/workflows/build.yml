@@ -1,4 +1,4 @@
-name: Build APK (Ultra Stable)
+name: Build APK (No Error Final)
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         distribution: "temurin"
         java-version: "17"
 
-    # 📦 DEPENDENCIES
+    # 📦 INSTALL DEPENDENCIES (STABLE)
     - name: Install dependencies
       run: |
         sudo apt update
@@ -37,22 +37,20 @@ jobs:
           cmake libffi-dev libssl-dev \
           libltdl-dev libsqlite3-dev sqlite3 \
           ffmpeg libsdl2-dev libsdl2-image-dev \
-          libsdl2-mixer-dev libsdl2-ttf-dev \
-          libgstreamer1.0-dev gstreamer1.0-plugins-base \
-          gstreamer1.0-plugins-good
+          libsdl2-mixer-dev libsdl2-ttf-dev
 
         python -m pip install --upgrade pip
         pip install cython==0.29.36 buildozer
 
-    # 🔧 CLEAN BUILD (VERY IMPORTANT)
-    - name: Clean old builds
+    # 🧹 CLEAN OLD BUILD
+    - name: Clean build cache
       run: |
         rm -rf .buildozer
         rm -rf ~/.buildozer
         rm -rf bin
 
-    # ⚙️ FIX buildozer.spec (force correct config)
-    - name: Patch buildozer.spec
+    # ⚙️ FIX buildozer.spec AUTO
+    - name: Fix buildozer.spec
       run: |
         sed -i 's/^# *android.api *=.*/android.api = 33/' buildozer.spec || true
         sed -i 's/^# *android.minapi *=.*/android.minapi = 21/' buildozer.spec || true
@@ -65,7 +63,7 @@ jobs:
       run: |
         buildozer android debug
 
-    # 📦 UPLOAD
+    # 📦 UPLOAD APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
