@@ -1,4 +1,4 @@
-name: Build APK (p4a Final Clean)
+name: Build APK (Final Compatible)
 
 on:
   push:
@@ -10,24 +10,24 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # 📥 Checkout code
+    # 📥 Code
     - name: Checkout
       uses: actions/checkout@v4
 
-    # 🐍 Python setup
+    # 🐍 Python
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    # ☕ Java setup
+    # ☕ Java
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: "temurin"
         java-version: "17"
 
-    # 📦 Install dependencies
+    # 📦 Dependencies
     - name: Install dependencies
       run: |
         sudo apt update
@@ -45,7 +45,7 @@ jobs:
         pip install cython==0.29.36
         pip install python-for-android
 
-    # 🚀 Build APK (FINAL FIXED)
+    # 🚀 Build APK
     - name: Build APK
       run: |
         p4a apk \
@@ -55,11 +55,11 @@ jobs:
         --version 1.0 \
         --bootstrap=sdl2 \
         --requirements=python3,kivy==2.2.0,requests \
-        --android-api=33 \
+        --android-api=34 \
         --arch=arm64-v8a \
         --dist_name=iptvbuild
 
-    # 📦 Upload APK
+    # 📦 Upload
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
