@@ -1,7 +1,7 @@
 <IPTV>:
     canvas.before:
         Color:
-            rgba: 0, 0, 0, 1
+            rgba: 0.1, 0.1, 0.1, 1  # ਥੋੜਾ ਜਿਹਾ ਗ੍ਰੇ ਬੈਕਗ੍ਰਾਊਂਡ (ਤਾਕਿ ਪਤਾ ਲੱਗੇ UI ਲੋਡ ਹੋਇਆ)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -12,25 +12,29 @@
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
         allow_stretch: True
 
+    # Top Info Bar
     BoxLayout:
         id: topbar
         orientation: 'vertical'
         size_hint: 1, None
-        height: "80dp"
+        height: "100dp"
         pos_hint: {"top": 1}
-        opacity: 0
+        padding: 20
+        opacity: 1
         canvas.before:
             Color:
-                rgba: 0, 0, 0, 0.7
+                rgba: 0, 0, 0, 0.8
             Rectangle:
                 pos: self.pos
                 size: self.size
         Label:
             id: ch_name
-            text: ""
-            font_size: '24sp'
+            text: "Initializing IPTV Player..."
+            font_size: '28sp'
             bold: True
+            color: 1, 1, 1, 1
 
+    # Side Menu with Search
     BoxLayout:
         id: side_menu
         orientation: 'vertical'
@@ -45,6 +49,13 @@
                 pos: self.pos
                 size: self.size
         
+        Label:
+            text: "CHANNEL LIST"
+            size_hint_y: None
+            height: "50dp"
+            bold: True
+            color: 1, 0, 0, 1
+
         TextInput:
             id: search_input
             hint_text: "Search Channel..."
@@ -62,3 +73,4 @@
                 size_hint_y: None
                 height: self.minimum_height
                 spacing: 2
+                padding: 5
