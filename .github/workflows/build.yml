@@ -69,9 +69,9 @@ jobs:
         --ndk-dir=$ANDROID_NDK_HOME \
         --dist_name=iptvbuild
 
-    # 📦 Upload APK
+    # 📦 Upload APK (PATH FIXED)
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: IPTV-APK
-        path: dist/**/bin/*.apk
+        path: /home/runner/.local/share/python-for-android/dists/iptvbuild/build/outputs/apk/debug/*.apk
