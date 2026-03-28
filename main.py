@@ -11,12 +11,11 @@ from kivy.lang import Builder
 Config.set('kivy', 'video', 'ffpyplayer')
 
 # ---------------- FORCE LOAD KV ----------------
-Builder.load_file("iptv.kv")  # ensure your main.kv is renamed to iptv.kv
+Builder.load_file("iptv.kv")  # ensure iptv.kv is in the same folder
 
 CONFIG_NAME = "config.json"
 
 class IPTV(FloatLayout):
-
     def __init__(self, **kw):
         super().__init__(**kw)
 
@@ -29,8 +28,8 @@ class IPTV(FloatLayout):
 
         Window.bind(on_key_down=self.keys)
 
-        # Delay playlist load slightly to ensure KV widgets ready
-        Clock.schedule_once(lambda dt: self.load_playlist(self.data["playlists"][self.data["current_playlist"]]), 0.2)
+        # Delay playlist load to ensure KV widgets ready
+        Clock.schedule_once(lambda dt: self.load_playlist(self.data["playlists"][self.data["current_playlist"]]), 0.5)
 
     # ---------------- CONFIG ----------------
     def load_config(self):
@@ -88,7 +87,6 @@ class IPTV(FloatLayout):
                 except:
                     pass
         print("Channels loaded:", len(self.channels))
-        # Delay start_play to ensure Video widget ready
         Clock.schedule_once(self.start_play, 0.5)
 
     # ---------------- START ----------------
@@ -112,7 +110,6 @@ class IPTV(FloatLayout):
         except Exception as e:
             print("Video load error:", e)
 
-        # EPG update
         if hasattr(self.ids, "ch_name") and hasattr(self.ids, "program"):
             self.ids.ch_name.text = ch["name"]
             self.ids.program.text = "Now Playing..."
@@ -132,25 +129,16 @@ class IPTV(FloatLayout):
         if not self.channels:
             return
 
-        # CH+
         if key == 166:
             self.play((self.current + 1) % len(self.channels))
-
-        # CH-
         elif key == 167:
             self.play((self.current - 1) % len(self.channels))
-
-        # NUMBER
         elif text and text.isdigit():
             n = int(text)
             if n < len(self.channels):
                 self.play(n)
-
-        # OK → overlay
         elif key == 40:
             self.show_overlay()
-
-        # SETTINGS
         elif text == "m":
             self.settings_menu()
 
@@ -176,7 +164,7 @@ class IPTV(FloatLayout):
 
     # ---------------- SETTINGS ----------------
     def settings_menu(self):
-        print("⚙ SETTINGS (next upgrade full UI)")
+        print("⚙ SETTINGS (future upgrade)")
 
 # ---------------- APP ----------------
 class AppMain(App):
